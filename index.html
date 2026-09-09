@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flip 7 Scorepad</title>
+<meta name="description" content="A simple scorepad for the Flip 7 card game.">
+<meta name="theme-color" content="#151821">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>7️⃣</text></svg>">
+</head>
+<body>
+<header class="topbar">
+  <h1>Flip&nbsp;7 <span>Scorepad</span></h1>
+  <div class="topbar-actions">
+    <button id="btn-rules" class="ghost" type="button">Rules</button>
+    <button id="btn-reset" class="ghost" type="button">New game</button>
+  </div>
+</header>
+
+<main>
+  <!-- ============ SETUP ============ -->
+  <section id="setup" class="panel">
+    <h2>Players</h2>
+    <ul id="player-list" class="player-setup"></ul>
+    <form id="add-player-form" class="add-player">
+      <input id="new-player" type="text" maxlength="16" placeholder="Add a player…" autocomplete="off">
+      <button type="submit" class="primary">Add</button>
+    </form>
+
+    <label class="target">
+      Play to
+      <input id="target-score" type="number" min="1" max="999" step="1" value="200">
+      points
+    </label>
+
+    <button id="btn-start" class="primary big" type="button">Start game</button>
+    <p id="setup-hint" class="hint">Add at least 2 players.</p>
+  </section>
+
+  <!-- ============ GAME ============ -->
+  <section id="game" class="panel" hidden>
+    <div class="round-head">
+      <h2>Round <span id="round-no">1</span></h2>
+      <p class="round-sub">Tap a player to enter their cards.</p>
+    </div>
+
+    <ul id="scoreboard" class="scoreboard"></ul>
+
+    <div class="round-actions">
+      <button id="btn-end-round" class="primary big" type="button">End round</button>
+      <button id="btn-undo" class="ghost" type="button">Undo last round</button>
+    </div>
+
+    <details id="history-wrap" class="history">
+      <summary>Round history</summary>
+      <div class="table-scroll"><table id="history-table"></table></div>
+    </details>
+  </section>
+</main>
+
+<!-- ============ CARD ENTRY DIALOG ============ -->
+<dialog id="entry" class="entry">
+  <form method="dialog" class="entry-inner">
+    <div class="entry-head">
+      <h3 id="entry-name">Player</h3>
+      <div id="entry-score" class="entry-score">0</div>
+    </div>
+
+    <p class="group-label">Number cards</p>
+    <div id="numbers" class="grid numbers"></div>
+
+    <p class="group-label">Modifiers</p>
+    <div id="modifiers" class="grid modifiers"></div>
+
+    <div class="entry-flags">
+      <button id="flag-bust" class="flag bust" type="button" value="bust">Busted</button>
+      <button id="flag-stay" class="flag" type="button" value="stay">Stayed / Frozen</button>
+    </div>
+
+    <p id="entry-note" class="entry-note"></p>
+
+    <div class="entry-actions">
+      <button id="entry-clear" class="ghost" type="button">Clear</button>
+      <button id="entry-done" class="primary" value="done">Done</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ============ RULES DIALOG ============ -->
+<dialog id="rules" class="rules">
+  <h3>Scoring cheat sheet</h3>
+  <ul>
+    <li>Score = sum of your unique <b>number cards</b> (0–12).</li>
+    <li><b>×2</b> doubles that sum, then <b>+2…+10</b> modifiers are added on top.</li>
+    <li>Collect <b>7 different numbers</b> → <b>Flip 7!</b> +15 bonus and the round ends.</li>
+    <li>Draw a duplicate number → <b>bust</b>, score 0 for the round (a Second Chance discards the duplicate instead).</li>
+    <li>First player to reach the target score (200 by default) wins.</li>
+  </ul>
+  <form method="dialog"><button class="primary" value="close">Got it</button></form>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>
