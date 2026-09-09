@@ -3,6 +3,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
   workflow_dispatch:
 
 permissions:
@@ -27,7 +29,10 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
-          # Turn Pages on for the repo if it isn't already.
+          # No-op once Pages is on. It cannot switch Pages on by itself:
+          # creating a Pages site needs admin rights that the workflow's
+          # GITHUB_TOKEN does not have. See the README for the one-time
+          # manual step.
           enablement: true
 
       - name: Assemble site

@@ -85,3 +85,34 @@ docker run --rm -p 8080:80 flip7-scorepad   # http://localhost:8080
 - gzip for CSS and JS.
 - `X-Content-Type-Options`, `X-Frame-Options` and `Referrer-Policy` headers.
 - Unknown paths fall back to `index.html`.
+
+## Deploying to GitHub Pages
+
+`.github/workflows/pages.yml` publishes the app on every push to `main`.
+
+**One-time setup (required):** go to **Settings → Pages** and set **Source** to
+**GitHub Actions**. The workflow cannot do this for you — creating a Pages site
+needs repository admin rights, and a workflow's `GITHUB_TOKEN` doesn't have
+them, so the first run fails with `Resource not accessible by integration`
+until the switch is flipped.
+
+Then re-run the workflow (**Actions → Deploy to GitHub Pages → Run workflow**,
+or just push again). The site lands at:
+
+```
+https://shogoki.github.io/flip7/
+```
+
+The app uses relative paths for `styles.css` and `app.js`, so it works
+unchanged under the `/flip7/` project subpath — nothing to configure.
+
+Only `index.html`, `styles.css` and `app.js` are published; the `Dockerfile`
+and nginx config stay off the public site. Markdown-only commits don't trigger
+a deploy.
+
+### Pages or Dokploy?
+
+They're independent and can both run. Pages is free and needs no server, but
+serves static files only. The Dokploy route gives you your own domain and the
+nginx config (security headers, health check, cache policy) — worth it if this
+ever grows a backend.
