@@ -26,14 +26,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Reads the repo's Pages config. It deliberately does not pass
+      # `enablement`: creating a Pages site needs admin rights the workflow's
+      # GITHUB_TOKEN does not carry, so it can only fail confusingly. Pages is
+      # switched on by hand once — see the README.
       - name: Configure Pages
         uses: actions/configure-pages@v5
-        with:
-          # No-op once Pages is on. It cannot switch Pages on by itself:
-          # creating a Pages site needs admin rights that the workflow's
-          # GITHUB_TOKEN does not have. See the README for the one-time
-          # manual step.
-          enablement: true
 
       - name: Assemble site
         # Publish only the app itself — the Dockerfile and nginx config are
