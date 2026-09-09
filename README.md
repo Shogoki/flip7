@@ -21,6 +21,10 @@ python3 -m http.server 8000   # then visit http://localhost:8000
 - **Busted** zeroes the round; **Stayed / Frozen** just marks the player done.
 - "End round" banks every score, shows a per-round history table, and announces
   a winner once someone reaches the target. "Undo last round" reverses it.
+- Anything destructive asks first: ending a round, undoing one, clearing a
+  player's cards, removing a player, and starting a new game. Cancel, Escape
+  and the backdrop are all safe; only the confirm button acts. A new game on a
+  pristine board skips the dialog, since there's nothing to lose.
 - The game is saved to `localStorage`, so a refresh or a closed tab won't lose it.
 
 ## Scoring rules used

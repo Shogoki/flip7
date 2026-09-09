@@ -102,10 +102,17 @@
       rm.textContent = '×';
       rm.title = 'Remove ' + p.name;
       rm.addEventListener('click', function () {
-        state.players.splice(state.players.indexOf(p), 1);
-        delete state.entries[p.id];
-        save();
-        renderSetup();
+        ask({
+          title: 'Remove ' + (p.name.trim() || 'this player') + '?',
+          confirmLabel: 'Remove',
+          danger: true
+        }).then(function (ok) {
+          if (!ok) return;
+          state.players.splice(state.players.indexOf(p), 1);
+          delete state.entries[p.id];
+          save();
+          renderSetup();
+        });
       });
       li.appendChild(rm);
 
@@ -201,6 +208,30 @@
     return el;
   }
 
+  /* --------------------------------------------------- confirmation dialog */
+
+  var confirmDlg = $('confirm');
+
+  // Resolves true only when the confirm button is pressed. Cancel, Escape and
+  // the backdrop all resolve false, so a stray keypress can never bank or
+  // destroy a round.
+  function ask(opts) {
+    return new Promise(function (resolve) {
+      $('confirm-title').textContent = opts.title;
+      $('confirm-body').textContent = opts.body || '';
+
+      var ok = $('confirm-ok');
+      ok.textContent = opts.confirmLabel || 'Confirm';
+      ok.classList.toggle('danger', opts.danger === true);
+
+      confirmDlg.returnValue = '';
+      confirmDlg.addEventListener('close', function () {
+        resolve(confirmDlg.returnValue === 'ok');
+      }, { once: true });
+      confirmDlg.showModal();
+    });
+  }
+
   /* --------------------------------------------------------- entry dialog */
 
   var dlg = $('entry');
@@ -287,6 +318,8 @@
     else if (isFlip7(e)) note.textContent = 'Flip 7! +' + FLIP7_BONUS + ' bonus, round over.';
     else note.textContent = e.numbers.length + ' of 7 number cards.';
 
+    $('entry-clear').disabled = !isTouched(e);
+
     renderGame();
   }
 
@@ -305,8 +338,19 @@
   });
 
   $('entry-clear').addEventListener('click', function () {
-    state.entries[editingId] = blankEntry();
-    syncEntry();
+    var e = entryFor(editingId);
+    if (!isTouched(e)) return;
+    var p = state.players.filter(function (x) { return x.id === editingId; })[0];
+    ask({
+      title: 'Clear ' + p.name + "'s cards?",
+      body: describe(e),
+      confirmLabel: 'Clear',
+      danger: true
+    }).then(function (ok) {
+      if (!ok) return;
+      state.entries[editingId] = blankEntry();
+      syncEntry();
+    });
   });
 
   /* ----------------------------------------------------------- round flow */
@@ -378,16 +422,59 @@
     render();
   });
 
-  $('btn-end-round').addEventListener('click', endRound);
-  $('btn-undo').addEventListener('click', undoRound);
+  $('btn-end-round').addEventListener('click', function () {
+    var pending = state.players.filter(function (p) { return !isTouched(entryFor(p.id)); });
+    var body = 'Scores are banked and every card pad is cleared.';
+    if (pending.length) {
+      body = pending.map(function (p) { return p.name; }).join(', ') +
+        (pending.length > 1 ? ' have ' : ' has ') + 'nothing entered and will score 0. ' + body;
+    }
+    ask({
+      title: 'End round ' + state.round + '?',
+      body: body,
+      confirmLabel: 'End round'
+    }).then(function (ok) { if (ok) endRound(); });
+  });
+
+  $('btn-undo').addEventListener('click', function () {
+    var last = state.history[state.history.length - 1];
+    if (!last) return;
+    var taken = state.players.map(function (p) {
+      return p.name + ' \u2212' + (last.scores[p.id] || 0);
+    }).join(', ');
+    ask({
+      title: 'Undo round ' + last.round + '?',
+      body: 'Takes back ' + taken +
+        '. Anything entered for the current round is cleared too.',
+      confirmLabel: 'Undo round',
+      danger: true
+    }).then(function (ok) { if (ok) undoRound(); });
+  });
   $('btn-rules').addEventListener('click', function () { $('rules').showModal(); });
 
   $('btn-reset').addEventListener('click', function () {
-    if (state.history.length && !confirm('Start a new game? The current scores will be lost.')) return;
+    var played = state.history.length;
+    var dirty = played > 0 ||
+      state.players.some(function (p) { return isTouched(entryFor(p.id)); });
+
+    // Nothing to lose on a pristine game — don't make them dismiss a dialog.
+    if (!dirty) { newGame(); return; }
+
+    ask({
+      title: 'Start a new game?',
+      body: played
+        ? 'All scores from ' + played + (played > 1 ? ' rounds' : ' round') + ' will be lost.'
+        : 'The cards entered for this round will be lost.',
+      confirmLabel: 'New game',
+      danger: true
+    }).then(function (ok) { if (ok) newGame(); });
+  });
+
+  function newGame() {
     state = freshGame(state.players.map(function (p) { return p.name; }), state.target);
     save();
     render();
-  });
+  }
 
   /* ---------------------------------------------------------------- boot */
 
