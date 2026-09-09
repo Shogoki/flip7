@@ -1,0 +1,14 @@
+# For Dokploy's "Compose" service type, and for running the image locally.
+# Dokploy attaches Traefik labels itself from the Domains tab — don't add
+# them here.
+services:
+  web:
+    build:
+      context: .
+    image: flip7-scorepad:latest
+    restart: unless-stopped
+    expose:
+      - "80"
+    # Uncomment for local testing, then open http://localhost:8080
+    # ports:
+    #   - "8080:80"
